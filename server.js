@@ -1,4 +1,3 @@
-/*
 const express = require("express");
 const bodyParser = require("body-parser");
 //const fetch = require("node-fetch");
@@ -86,45 +85,16 @@ app.post("/gpt", async (req, res) => {
   const data = await response.json();
   res.json({ reply: data.choices[0].message.content });
   */
-//});
+});
 
 /* 本地端測試
 app.listen(3000, () => console.log("✅ Server running on http://localhost:3000"));
 */
-/*
+
 // Heroku
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
 app.get("/ping", (req, res) => {
   res.send("pong");
 });
-*/
 
-const express = require("express");
-const path = require("path");
-
-const app = express();
-app.use(express.json());
-
-// 提供前端靜態檔案
-app.use(express.static(path.join(__dirname, "public")));
-
-// 🔹 ping 測試路由
-app.get("/ping", (req, res) => {
-  res.send("pong ✅ 伺服器運作正常！");
-});
-
-// 🔹 GPT 測試路由（不用 API，先測試流程）
-app.post("/gpt", (req, res) => {
-  const userText = req.body.text;
-  console.log("收到練習內容：", userText);
-
-  // 模擬 GPT 回覆
-  const reply = `你今天練習了：${userText}，加油！`;
-  console.log("回覆：", reply);
-
-  res.json({ reply });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
