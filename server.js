@@ -4,10 +4,11 @@ const bodyParser = require("body-parser");
 const path = require("path");
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
+// app.use(bodyParser.json());
 
 // 提供前端靜態檔案
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, "public")));
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
