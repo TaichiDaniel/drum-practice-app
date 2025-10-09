@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>鼓練紀錄 MVP</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    textarea { width: 100%; height: 80px; margin-bottom: 10px; }
+    button { padding: 10px 20px; }
+    #response { margin-top: 20px; font-weight: bold; color: #2b6cb0; }
+  </style>
+</head>
+<body>
+  <h1>🥁 今日練習紀錄</h1>
+  <textarea id="input" placeholder="輸入練習內容，例如：單擊 120 bpm RLRL"></textarea><br>
+  <button onclick="send()">送出</button>
+  <div id="response"></div>
+
+  <script>
+    async function send() {
+      const input = document.getElementById("input").value;
+      const resDiv = document.getElementById("response");
+      resDiv.innerText = "⏳ 等待伺服器回覆...";
+      console.log("準備送出給伺服器的內容：", input);
+
+      const res = await fetch("/gpt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: input })
+      });
+
+      const data = await res.json();
+      resDiv.innerText = data.reply;
+    }
+  </script>
+</body>
+</html>
