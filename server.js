@@ -12,6 +12,10 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
+app.get("/ping", (req, res) => {
+  res.send("pong");
+});
+
 app.post("/gpt", async (req, res) => {
   const userText = req.body.text;
   console.log("收到練習內容：", userText);
