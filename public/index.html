@@ -2,159 +2,126 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>鼓練紀錄 MVP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>鼓練紀錄</title>
   <style>
-    :root{
-      --bg: #fafafa;
-      --card: #ffffff;
-      --accent: #2b6cb0;
-      --muted: #6b7280;
-      --radius: 12px;
-      --gap: 16px;
+    /* === 共用樣式 === */
+    * {
+      box-sizing: border-box;
     }
 
-    /* === 基礎樣式（共用） === */
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background: linear-gradient(180deg, #f7fbff 0%, #fafafa 100%);
-  color: #111827;
-}
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+      background-color: #f9fafb;
+      color: #111827;
+      padding: 16px;
+    }
 
-.page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 24px;
+      color: #111827;
+      letter-spacing: 0.5px;
+    }
 
-.card {
-  width: 100%;
-  max-width: 680px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(2,6,23,0.06);
-  padding: 20px;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-}
+    .container {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
 
-/* === 桌機版（螢幕寬度 ≥ 769px） === */
-@media (min-width: 769px) {
-  body {
-    background: linear-gradient(90deg, #e6eef9 0%, #fafafa 100%);
-  }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 12px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      resize: none;
+      font-size: 1rem;
+      outline: none;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
 
-  .page {
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 100px;
-  }
+    textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
 
-  .card {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 24px;
-    max-width: 1000px;
-  }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 100%;
+      max-width: 200px;
+    }
 
-  h1 {
-    font-size: 24px;
-  }
+    button:hover {
+      background-color: #1e40af;
+    }
 
-  textarea {
-    font-size: 16px;
-  }
+    #response {
+      margin-top: 16px;
+      font-size: 1rem;
+      color: #1e3a8a;
+      text-align: center;
+      white-space: pre-wrap;
+    }
 
-  .controls {
-    justify-content: flex-start;
-  }
-}
-
-/* === 手機／平板版（螢幕寬度 ≤ 768px） === */
-@media (max-width: 768px) {
-  .card {
-    border-radius: 10px;
-    padding: 16px;
-  }
-
-  h1 {
-    font-size: 18px;
-    text-align: center;
-  }
-
-  p.lead {
-    text-align: center;
-  }
-
-  textarea {
-    font-size: 18px;
-    width: 100%;
-  }
-
-  .controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  button {
-    width: 100%;
-    padding: 14px;
-    font-size: 17px;
-  }
-
-  #response {
-    font-size: 16px;
-  }
-}
+    /* === 響應式設定 === */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.4rem;
+      }
+      textarea {
+        height: 120px;
+        font-size: 1rem;
+      }
+      button {
+        width: 100%;
+        font-size: 1rem;
+      }
+      .container {
+        max-width: 90%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="card" role="main" aria-labelledby="title">
-      <h1 id="title">🥁 今日練習紀錄</h1>
-      <p class="lead">輸入你今天的練習（例如：單擊 120 bpm RLRL），AI 會幫你整理成鼓勵語句與分類。</p>
-
-      <textarea id="input" placeholder="輸入練習內容，例如：單擊 120 bpm RLRL" aria-label="練習內容"></textarea>
-
-      <div class="controls">
-        <button id="sendBtn" onclick="send()">送出</button>
-        <button id="clearBtn" class="secondary" onclick="clearInput()">清除</button>
-      </div>
-
-      <div id="response" aria-live="polite"></div>
-    </div>
+  <h1>🥁 今日練習紀錄</h1>
+  <div class="container">
+    <textarea id="input" placeholder="輸入練習內容，例如：單擊 120 bpm RLRL"></textarea>
+    <button onclick="send()">送出</button>
+    <div id="response"></div>
   </div>
 
   <script>
-    const sendBtn = document.getElementById('sendBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const resDiv = document.getElementById('response');
-    const inputEl = document.getElementById('input');
+    async function send() {
+      const input = document.getElementById("input").value.trim();
+      const resDiv = document.getElementById("response");
 
-    // 可選：自動聚焦（手機可能不想自動彈鍵盤，視情況開關）
-    // inputEl.focus();
-
-    function clearInput(){
-      inputEl.value = '';
-      resDiv.innerText = '';
-      inputEl.focus();
-    }
-
-    async function send(){
-      const input = inputEl.value.trim();
-      if(!input){
-        resDiv.innerText = "請輸入練習內容後再送出。";
+      if (!input) {
+        resDiv.innerText = "請先輸入練習內容";
         return;
       }
 
-      sendBtn.disabled = true;
-      clearBtn.disabled = true;
       resDiv.innerText = "⏳ 等待伺服器回覆...";
+      console.log("送出內容：", input);
 
       try {
         const res = await fetch("/gpt", {
@@ -163,28 +130,13 @@ html, body {
           body: JSON.stringify({ text: input })
         });
 
-        if(!res.ok){
-          const txt = await res.text();
-          throw new Error(`伺服器錯誤：${res.status} ${txt}`);
-        }
-
         const data = await res.json();
-        resDiv.innerText = data.reply || "⚠️ 伺服器沒有回覆內容";
-      } catch(err){
+        resDiv.innerText = data.reply || "⚠️ 沒有收到伺服器回覆";
+      } catch (err) {
         console.error(err);
-        resDiv.innerText = "⚠️ 無法連線或伺服器錯誤，請稍後再試。";
-      } finally {
-        sendBtn.disabled = false;
-        clearBtn.disabled = false;
+        resDiv.innerText = "❌ 發生錯誤，請稍後再試";
       }
     }
-
-    // 開發測試：模擬輸入時按下 Ctrl+Enter 也送出
-    inputEl.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
-        send();
-      }
-    });
   </script>
 </body>
 </html>
