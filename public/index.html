@@ -1,37 +1,200 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>鼓練紀錄 MVP</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    textarea { width: 100%; height: 80px; margin-bottom: 10px; }
-    button { padding: 10px 20px; }
-    #response { margin-top: 20px; font-weight: bold; color: #2b6cb0; }
+    :root{
+      --bg: #fafafa;
+      --card: #ffffff;
+      --accent: #2b6cb0;
+      --muted: #6b7280;
+      --radius: 12px;
+      --gap: 16px;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #f7fbff 0%, var(--bg) 100%);
+      color: #111827;
+    }
+
+    /* 中心容器 */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    /* 卡片 */
+    .card {
+      width: 100%;
+      max-width: 680px;        /* 桌機寬度上限 */
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(2,6,23,0.06);
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1{
+      margin:0 0 8px 0;
+      font-size: 20px;
+    }
+    p.lead{
+      margin:0 0 18px 0;
+      color: var(--muted);
+      font-size:14px;
+    }
+
+    /* 輸入區 */
+    textarea{
+      width:100%;
+      min-height:110px;
+      max-height:320px;
+      resize:vertical;
+      padding:12px;
+      font-size:16px;
+      border-radius:10px;
+      border:1px solid #e6edf6;
+      outline:none;
+      box-sizing:border-box;
+      background: #fbfeff;
+    }
+
+    .controls{
+      display:flex;
+      gap:12px;
+      margin-top:12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    button{
+      background: var(--accent);
+      color:white;
+      border:none;
+      padding:12px 18px;
+      border-radius:10px;
+      font-size:16px;
+      cursor:pointer;
+      box-shadow: 0 6px 12px rgba(43,108,176,0.12);
+      min-width:120px;
+    }
+
+    button:disabled{
+      opacity:0.6;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+
+    .secondary{
+      background:transparent;
+      color:var(--accent);
+      border:1px solid rgba(43,108,176,0.12);
+    }
+
+    #response{
+      margin-top:16px;
+      padding:12px;
+      border-radius:8px;
+      background: linear-gradient(90deg, rgba(43,108,176,0.06), rgba(43,108,176,0.03));
+      color:var(--accent);
+      font-weight:600;
+      min-height:48px;
+      display:flex;
+      align-items:center;
+    }
+
+    /* 手機優化：讓按鈕變寬、文字稍大 */
+    @media (max-width:480px){
+      .card{ padding:16px; border-radius:10px; }
+      h1{ font-size:18px; }
+      textarea{ font-size:18px; min-height:140px; }
+      .controls{ flex-direction:column; }
+      button{ width:100%; min-width:0; padding:14px; font-size:17px; }
+      #response{ font-size:16px; padding:14px; }
+    }
   </style>
 </head>
 <body>
-  <h1>🥁 今日練習紀錄</h1>
-  <textarea id="input" placeholder="輸入練習內容，例如：單擊 120 bpm RLRL"></textarea><br>
-  <button onclick="send()">送出</button>
-  <div id="response"></div>
+  <div class="page">
+    <div class="card" role="main" aria-labelledby="title">
+      <h1 id="title">🥁 今日練習紀錄</h1>
+      <p class="lead">輸入你今天的練習（例如：單擊 120 bpm RLRL），AI 會幫你整理成鼓勵語句與分類。</p>
+
+      <textarea id="input" placeholder="輸入練習內容，例如：單擊 120 bpm RLRL" aria-label="練習內容"></textarea>
+
+      <div class="controls">
+        <button id="sendBtn" onclick="send()">送出</button>
+        <button id="clearBtn" class="secondary" onclick="clearInput()">清除</button>
+      </div>
+
+      <div id="response" aria-live="polite"></div>
+    </div>
+  </div>
 
   <script>
-    async function send() {
-      const input = document.getElementById("input").value;
-      const resDiv = document.getElementById("response");
-      resDiv.innerText = "⏳ 等待伺服器回覆...";
-      console.log("準備送出給伺服器的內容：", input);
+    const sendBtn = document.getElementById('sendBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const resDiv = document.getElementById('response');
+    const inputEl = document.getElementById('input');
 
-      const res = await fetch("/gpt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: input })
-      });
+    // 可選：自動聚焦（手機可能不想自動彈鍵盤，視情況開關）
+    // inputEl.focus();
 
-      const data = await res.json();
-      resDiv.innerText = data.reply;
+    function clearInput(){
+      inputEl.value = '';
+      resDiv.innerText = '';
+      inputEl.focus();
     }
+
+    async function send(){
+      const input = inputEl.value.trim();
+      if(!input){
+        resDiv.innerText = "請輸入練習內容後再送出。";
+        return;
+      }
+
+      sendBtn.disabled = true;
+      clearBtn.disabled = true;
+      resDiv.innerText = "⏳ 等待伺服器回覆...";
+
+      try {
+        const res = await fetch("/gpt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: input })
+        });
+
+        if(!res.ok){
+          const txt = await res.text();
+          throw new Error(`伺服器錯誤：${res.status} ${txt}`);
+        }
+
+        const data = await res.json();
+        resDiv.innerText = data.reply || "⚠️ 伺服器沒有回覆內容";
+      } catch(err){
+        console.error(err);
+        resDiv.innerText = "⚠️ 無法連線或伺服器錯誤，請稍後再試。";
+      } finally {
+        sendBtn.disabled = false;
+        clearBtn.disabled = false;
+      }
+    }
+
+    // 開發測試：模擬輸入時按下 Ctrl+Enter 也送出
+    inputEl.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+        send();
+      }
+    });
   </script>
 </body>
 </html>
