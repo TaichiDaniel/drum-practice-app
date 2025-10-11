@@ -5,11 +5,11 @@ import express from "express";
 import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
-//import dotenv from "dotenv";
+import dotenv from "dotenv";
 import faiss from "faiss-node"; // 用於載入 index 檔
 import OpenAI from "openai";
 
-// dotenv.config();
+dotenv.config();
 
 // ----------------------------
 // 初始化 Express 伺服器
@@ -80,7 +80,7 @@ async function loadDatabases() {
     const jsonData = JSON.parse(jsonString);
 
     // 初始化 FAISS index
-    const index = faiss.readIndexBinary(indexBuffer);
+    const index = faiss.readIndex(indexBuffer);
 
     // 將資料存入全域變數 databases（假設目前只有一個分類）
     databases["教材"] = {
