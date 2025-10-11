@@ -1,7 +1,8 @@
 const express = require("express");
 const path = require("path");
-const fetch = require("node-fetch"); // Node 18+ 可用全域 fetch，也可用 node-fetch
+// const fetch = require("node-fetch"); // Node 18+ 可用全域 fetch，也可用 node-fetch
 const { Pinecone, ServerlessSpec } = require("@pinecone-database/pinecone");
+const { OpenAI } = require("openai");
 
 const app = express();
 app.use(express.json());
@@ -22,6 +23,9 @@ const pc = new Pinecone({
 // 取得 Pinecone Index 實例
 const pineconeIndex = pc.Index(PINECONE_INDEX_NAME);
 
+// 初始化 OpenAI
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+
 // POST /gpt 路由：接收前端輸入文字，查 Pinecone，再送給 GPT
 app.post("/gpt", async (req, res) => {
 
@@ -41,16 +45,10 @@ app.post("/gpt", async (req, res) => {
 
     // 用文字生成向量 (此處示意，實際上要用 OpenAI Embeddings 或其他向量生成方法)
     // 例如：OpenAI Embeddings API 產生向量
-    const embeddingResponse = await fetch("https://api.openai.com/v1/embeddings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        input: userText,
-        model: "text-embedding-3-small"
-      })
+    // 產生向量
+    const embeddingResponse = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: userText
     });
     const embeddingData = await embeddingResponse.json();
     const userVector = embeddingData.data[0].embedding;
