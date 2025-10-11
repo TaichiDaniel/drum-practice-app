@@ -15,7 +15,7 @@ const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME;
 
 // 初始化 Pinecone 客戶端
 const pc = new Pinecone({
-  api_key: PINECONE_API_KEY,
+  apiKey: PINECONE_API_KEY,
   environment: PINECONE_ENV
 });
 
