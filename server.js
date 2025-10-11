@@ -16,7 +16,7 @@ const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME;
 // 初始化 Pinecone 客戶端
 const pc = new Pinecone({
   apiKey: PINECONE_API_KEY,
-  environment: PINECONE_ENV
+  controllerHostUrl: "https://controller.us-east-1.pinecone.io" // 依照你的 env region 改
 });
 
 // 取得 Pinecone Index 實例
