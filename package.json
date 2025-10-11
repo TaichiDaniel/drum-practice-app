@@ -11,7 +11,12 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^2.2.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "faiss-node": "^0.5.1",
+    "fs": "^0.0.1-security",
+    "node-fetch": "^3.3.2",
+    "openai": "^6.3.0",
+    "path": "^0.12.7"
   },
   "description": ""
 }
