@@ -5,11 +5,11 @@ import express from "express";
 import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
-import dotenv from "dotenv";
+//import dotenv from "dotenv";
 import faiss from "faiss-node"; // 用於載入 index 檔
 import OpenAI from "openai";
 
-dotenv.config();
+// dotenv.config();
 
 // ----------------------------
 // 初始化 Express 伺服器
