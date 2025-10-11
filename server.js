@@ -23,6 +23,10 @@ const pc = new Pinecone({
 // 取得 Pinecone Index 實例
 const pineconeIndex = pc.Index(PINECONE_INDEX_NAME);
 
+console.log("🔍 Pinecone index:", PINECONE_INDEX_NAME);
+console.log("🔍 Pinecone env:", PINECONE_ENV);
+console.log("🔍 Controller URL:", "https://controller.us-east-1.pinecone.io");
+
 // 初始化 OpenAI
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
