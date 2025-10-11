@@ -10,7 +10,7 @@ app.use(express.static(path.join(__dirname, "public"))); // 提供前端靜態�
 // 讀取環境變數
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
-const PINECONE_ENV = process.env.PINECONE_ENV || "us-east-1"; // 你的 Pinecone 環境
+const PINECONE_ENV = process.env.PINECONE_ENV;
 const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME;
 
 // 初始化 Pinecone 客戶端
