@@ -24,6 +24,10 @@ const pineconeIndex = pc.Index(PINECONE_INDEX_NAME);
 
 // POST /gpt 路由：接收前端輸入文字，查 Pinecone，再送給 GPT
 app.post("/gpt", async (req, res) => {
+
+  console.log("測試收到請求", req.body);
+  res.json({ reply: "後端測試成功！" });
+
   const userText = req.body.text;
   console.log("收到練習內容：", userText);
 
