@@ -38,56 +38,34 @@ app.post("/gpt", async (req, res) => {
   console.log("收到練習內容：", userText);
 
   try {
-    // -----------------------------
-    // 1️⃣ 先呼叫 Pinecone 查詢相似向量
-    // -----------------------------
-    const index = pc.Index(PINECONE_INDEX_NAME);
+  // -----------------------------
+  // 1️⃣ 先呼叫 OpenAI Embeddings 生成向量
+  // -----------------------------
+  const embeddingResponse = await openai.embeddings.create({
+    model: "text-embedding-3-small",
+    input: userText
+  });
 
-    // 用文字生成向量 (此處示意，實際上要用 OpenAI Embeddings 或其他向量生成方法)
-    // 例如：OpenAI Embeddings API 產生向量
-    // 產生向量
-    const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: userText
-    });
-    const embeddingData = await embeddingResponse.json();
-    const userVector = embeddingData.data[0].embedding;
+  // ✅ 直接取回 JS object，不要再 .json()
+  const userVector = embeddingResponse.data[0].embedding;
 
-    // 查詢 Pinecone
-    const queryResponse = await index.query({
-      vector: userVector,
-      topK: 3, // 取最相似的前三個段落
-      includeMetadata: true
-    });
+  // -----------------------------
+  // 2️⃣ 查詢 Pinecone
+  // -----------------------------
+  const queryResponse = await pineconeIndex.query({
+    vector: userVector,
+    topK: 3, // 取最相似的前三個段落
+    includeMetadata: true
+  });
 
-    console.log("Pinecone 查詢結果：", JSON.stringify(queryResponse, null, 2));
+  console.log("Pinecone 查詢結果：", JSON.stringify(queryResponse, null, 2));
 
-    // 回傳查到的段落 (先測試 Pinecone)
-    const matchedTexts = queryResponse.matches.map(m => m.metadata.text);
-    res.json({ reply: "Pinecone 查詢測試成功！\n\n找到的段落：\n" + matchedTexts.join("\n---\n") });
+  // 回傳查到的段落 (先測試 Pinecone)
+  const matchedTexts = queryResponse.matches.map(m => m.metadata.text);
+  res.json({
+    reply: "Pinecone 查詢測試成功！\n\n找到的段落：\n" + matchedTexts.join("\n---\n")
+  });
 
-    // -----------------------------
-    // 2️⃣ 之後可以加 OpenAI API 呼叫
-    // -----------------------------
-    /*
-    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "你是一位鼓老師，幫使用者整理練習成鼓勵語句" },
-          { role: "user", content: userText }
-        ]
-      })
-    });
-    const data = await openaiResponse.json();
-    const reply = data.choices[0].message.content;
-    res.json({ reply });
-    */
   } catch (err) {
     console.error("發生錯誤：", err);
     res.status(500).json({ reply: "❌ 發生錯誤，請稍後再試\n\n" + err.message });
