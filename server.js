@@ -70,6 +70,20 @@ app.post("/gpt", async (req, res) => {
   const matchedTexts = queryResponse.matches.map(m => m.metadata.text);
   const contextText = matchedTexts.join("\n---\n");
 
+  let prompt = "";
+  if (matchedTexts.length > 0) {
+    prompt =
+      `以下是教材內容的部分摘錄：\n\n` +
+      matchedTexts.join("\n\n---\n\n") +
+      `\n\n請只根據上面的教材回答問題。` +
+      `如果教材中沒有答案，請回答「教材中沒有相關資訊」。\n\n` +
+      `問題：${userText}\n回答：`;
+  } else {
+    prompt =
+      `教材中沒有相關資訊。\n\n` +
+      `問題：${userText}\n回答：`;
+  }
+
     // -----------------------------
     // 4️⃣ 呼叫 GPT 產生回覆
     // -----------------------------
@@ -78,7 +92,7 @@ app.post("/gpt", async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "你是一位在 MI 教導鼓 Technique 的老師，請根據教材內容與學生輸入的練習內容，給出鼓勵與建議。"
+          content: "你是一位在 Musician Institute 教導爵士鼓的老師，精通Technique, Reading以及Performance。請根據教材內容與學生輸入的練習內容，給出建議與鼓勵。"
         },
         {
           role: "user",
