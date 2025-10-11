@@ -64,12 +64,39 @@ app.post("/gpt", async (req, res) => {
 
   console.log("Pinecone 查詢結果：", JSON.stringify(queryResponse, null, 2));
 
-  // 回傳查到的段落 (先測試 Pinecone)
+  // -----------------------------
+  // 3️⃣ 整理查到的段落內容
+  // -----------------------------
   const matchedTexts = queryResponse.matches.map(m => m.metadata.text);
-  res.json({
-    reply: "Pinecone 查詢測試成功！\n\n找到的段落：\n" + matchedTexts.join("\n---\n")
-  });
+  const contextText = matchedTexts.join("\n---\n");
 
+    // -----------------------------
+    // 4️⃣ 呼叫 GPT 產生回覆
+    // -----------------------------
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "你是一位在 MI 教導鼓 Technique 的老師，請根據教材內容與學生輸入的練習內容，給出鼓勵與建議。"
+        },
+        {
+          role: "user",
+          content: `教材內容：\n${contextText}\n\n學生輸入的練習內容：\n${userText}`
+        }
+      ]
+    });
+
+    const gptReply = completion.choices[0].message.content;
+
+    console.log("GPT 回覆：", gptReply);
+
+    // -----------------------------
+    // 5️⃣ 回傳最終結果給前端
+    // -----------------------------
+    res.json({
+      reply: gptReply
+    });
   } catch (err) {
     console.error("發生錯誤：", err);
     res.status(500).json({ reply: "❌ 發生錯誤，請稍後再試\n\n" + err.message });
