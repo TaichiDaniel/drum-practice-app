@@ -46,20 +46,16 @@
     /* === 輸入框基本樣式 === */
     textarea {
       width: 100%;
-      max-width: 100%;
       max-width: 600px; /* 最大寬度 */
       height: 80px;
       padding: 12px 16px;
       border: 1px solid #d1d5db;
-      border-radius: 1rem;
+      border-radius: 12px;
       resize: none; /* 禁止拖拉改變大小 */
-      overflow-y: auto;
-      max-height: 150px;
       font-size: 1rem;
       outline: none; /* 去除聚焦外框 */
-      background: linear-gradient(to right, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
-      backdrop-filter: blur(12px);
-      box-shadow: none;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
       transition: border-color 0.2s, box-shadow 0.2s; /* 聚焦時動畫 */
     }
 
@@ -219,11 +215,6 @@
       background-color: #1e40af;
     }
 
-    .input-container {
-      background: transparent;
-      box-shadow: none;
-    } 
-
     /* === 響應式設定 === */
     @media (max-width: 768px) {
       h1 { font-size: 1.4rem; }
@@ -364,15 +355,6 @@
     function scrollToBottom() {
       responseDiv.scrollTop = responseDiv.scrollHeight;
     }
-
-    // 高度自動調整但限制最大 150px，超過會出現滾動條
-    const textarea = document.querySelector('textarea');
-    textarea.addEventListener('input', () => {
-      textarea.style.height = 'auto';              // 重設高度
-      textarea.style.height = textarea.scrollHeight + 'px';  // 根據內容調整
-    });
-
-
   </script>
 </body>
 </html>
