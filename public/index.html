@@ -180,17 +180,19 @@
       bottom: 0;
       background-color: #f9fafb;  /* 與背景融為一體 */
       display: flex;
-      align-items: flex-end;      /* 與送出按鈕底對齊 */
+      flex-direction: row;        /* 左右排列：輸入框 + 送出鍵 */
+      align-items: center;      /* 與送出按鈕底對齊 */
       gap: 8px;
       padding: 10px 0 14px 0;
       max-width: 720px;
       margin: 0 auto;
+      width: 100%;           /* 必須佔滿整個可用寬度 */
     }
 
     input-area textarea {
       flex: 1;                    /* ✅ 填滿剩餘空間 */
       min-height: 44px;           /* 初始高度 */
-      max-height: 200px;          /* 限制最大高度 */
+      max-height: 150px;          /* 限制最大高度 */
       overflow-y: auto;           /* 當字太多時可捲動 */
       resize: none;
       border-radius: 16px;
@@ -198,6 +200,7 @@
       padding: 10px 14px;
       font-size: 1rem;
       transition: border-color 0.2s, box-shadow 0.2s;
+      background: rgba(255,255,255,0.8); /* 半透明背景 */
     }
 
     .input-area button {
@@ -289,7 +292,7 @@
     // === 自動增高輸入框 ===
     inputBottom.addEventListener("input", () => {
       inputBottom.style.height = "auto"; // 重設高度
-      inputBottom.style.height = inputBottom.scrollHeight + "px"; // 根據內容調整高度
+      bottomInput.style.height = Math.min(bottomInput.scrollHeight, 150) + "px"; // 自動撐高，限制150px
     });
 
     // === 呼叫後端 API 並處理 GPT 回覆 ===
