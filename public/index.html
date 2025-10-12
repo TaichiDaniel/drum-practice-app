@@ -355,6 +355,19 @@
     function scrollToBottom() {
       responseDiv.scrollTop = responseDiv.scrollHeight;
     }
+
+    document.addEventListener("keydown", function (e) {
+      const textarea = document.getElementById("user-input");
+      if (!textarea) return; // 還沒出現輸入框就跳過
+
+      // 只針對目前 focus 在輸入框的情況觸發
+      if (document.activeElement === textarea) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById("send-btn").click();
+        }
+      }
+    });
   </script>
 </body>
 </html>
