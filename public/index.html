@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>練鼓小幫手</title>
   <style>
-    * { box-sizing: border-box; }
+    /* === 全域設定 === */
+    * { box-sizing: border-box; } /* 包含 padding 與 border 在元素總寬度內 */
 
     body {
       margin: 0;
-      height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-      background-color: #f9fafb;
-      color: #111827;
+      height: 100vh; /* 佔滿整個視窗高度 */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial; /* 系統字體 */
+      background-color: #f9fafb; /* 淺灰背景 */
+      color: #111827; /* 文字顏色 */
       display: flex;
-      flex-direction: column;
+      flex-direction: column; /* 從上到下排列 */
     }
 
     h1 {
@@ -25,43 +26,45 @@
       letter-spacing: 0.5px;
     }
 
-    /* 初始輸入框置中 */
+    /* === 初始輸入框置中 === */
     #initial-container {
-      flex: 1;
+      flex: 1; /* 佔滿剩餘空間，讓輸入框可以垂直置中 */
       display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
+      justify-content: center; /* 水平置中 */
+      align-items: center;     /* 垂直置中 */
+      flex-direction: column;  /* 上下排列 */
       width: 100%;
       padding: 16px;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.5s ease; /* 淡出動畫 */
     }
 
     #initial-container.hidden {
-      opacity: 0;
-      pointer-events: none;
+      opacity: 0; /* 隱藏 */
+      pointer-events: none; /* 不可點擊 */
     }
 
+    /* === 輸入框基本樣式 === */
     textarea {
       width: 100%;
-      max-width: 600px;
+      max-width: 600px; /* 最大寬度 */
       height: 80px;
       padding: 12px 16px;
       border: 1px solid #d1d5db;
       border-radius: 12px;
-      resize: none;
+      resize: none; /* 禁止拖拉改變大小 */
       font-size: 1rem;
-      outline: none;
+      outline: none; /* 去除聚焦外框 */
       background: #ffffff;
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s; /* 聚焦時動畫 */
     }
 
     textarea:focus {
       border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15); /* 藍色聚焦光暈 */
     }
 
+    /* === 送出按鈕樣式 === */
     button {
       background-color: #2563eb;
       color: white;
@@ -78,67 +81,69 @@
       background-color: #1e40af;
     }
 
-    /* 聊天區域 */
+    /* === 聊天區域容器 === */
     .chat-container {
-      flex: 1;
+      flex: 1; /* 撐滿剩餘空間 */
       display: flex;
-      flex-direction: column;
+      flex-direction: column; /* 上下排列訊息與輸入區 */
       width: 100%;
       max-width: 720px;
       margin: 0 auto;
-      padding: 16px;
-      overflow: hidden;
-      opacity: 0;
-      transition: opacity 0.5s ease;
+      padding: 0 16px;
+      opacity: 0; /* 初始隱藏 */
+      transition: opacity 0.5s ease; /* 淡入動畫 */
     }
 
     .chat-container.visible {
-      opacity: 1;
+      opacity: 1; /* 顯示聊天區 */
     }
 
+    /* === 對話訊息容器 === */
     #response {
-      flex: 1;
+      flex: 1; /* 撐滿可用高度 */
       width: 100%;
-      overflow-y: auto;
-      padding: 12px;
-      background: white;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      overflow-y: auto; /* 超出高度可滾動 */
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 8px; /* 訊息間距 */
+      padding: 0;
+      background: transparent; /* 融入背景，去掉明顯區塊 */
+      border: none;
+      box-shadow: none;
     }
 
+    /* === 單條訊息樣式 === */
     .message {
       padding: 10px 14px;
       border-radius: 12px;
-      line-height: 1.6;
-      white-space: pre-wrap; 
-      word-break: break-word; 
+      line-height: 1.6; /* 文字行距 */
+      white-space: pre-wrap; /* 自動換行保留空格 */
+      word-break: break-word; /* 長單字斷行 */
       max-width: 90%;
       opacity: 0;
       transform: translateY(10px);
-      animation: fadeIn 0.4s forwards;
+      animation: fadeIn 0.4s forwards; /* 淡入動畫 */
     }
 
+    /* 使用者訊息 */
     .user {
       background-color: #2563eb;
       color: white;
-      align-self: flex-end;
+      align-self: flex-end; /* 右側顯示 */
     }
 
+    /* GPT 訊息 */
     .assistant {
       background-color: #e5e7eb;
       color: #111827;
-      align-self: flex-start;
+      align-self: flex-start; /* 左側顯示 */
     }
 
     @keyframes fadeIn {
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* GPT 輸入中動畫 */
+    /* === GPT 輸入中動畫 === */
     .typing {
       display: flex;
       gap: 4px;
@@ -169,18 +174,19 @@
       40% { transform: translateY(-6px); }
     }
 
-    /* 固定輸入區在底部 */
+    /* === 固定輸入區在底部 === */
     .input-area {
       display: flex;
       flex-direction: column;
       width: 100%;
-      padding: 8px 16px;
-      margin-top: auto;
+      padding: 8px 0;
+      margin-top: auto; /* 強制靠底部 */
       max-width: 720px;
       margin-left: auto;
       margin-right: auto;
     }
 
+    /* === 響應式設定 === */
     @media (max-width: 768px) {
       h1 { font-size: 1.4rem; }
       textarea { height: 100px; }
@@ -190,15 +196,15 @@
 <body>
   <h1>🥁練鼓小幫手</h1>
 
-  <!-- 初始輸入框 -->
+  <!-- === 初始輸入框置中，第一次使用者輸入 === -->
   <div id="initial-container">
     <textarea id="input" placeholder="有什麼可以幫你的嗎？"></textarea>
     <button onclick="send()">送出</button>
   </div>
 
-  <!-- 聊天區域 -->
+  <!-- === 聊天區域，初始隱藏，第一次送出後顯示 === -->
   <div class="chat-container" id="chat-container">
-    <div id="response"></div>
+    <div id="response"></div> <!-- 對話訊息區 -->
     <div class="input-area">
       <textarea id="input-bottom" placeholder="輸入練習內容..."></textarea>
       <button onclick="sendBottom()">送出</button>
@@ -206,30 +212,33 @@
   </div>
 
   <script>
+    // DOM 元素
     const initialContainer = document.getElementById("initial-container");
     const chatContainer = document.getElementById("chat-container");
     const responseDiv = document.getElementById("response");
     const inputTop = document.getElementById("input");
     const inputBottom = document.getElementById("input-bottom");
 
-    let firstMessageSent = false;
-    let typingElement = null;
+    let firstMessageSent = false; // 判斷是否第一次送出
+    let typingElement = null;     // GPT 輸入中動畫元素
 
+    // === 第一次置中輸入框送出 ===
     async function send() {
       const text = inputTop.value.trim();
       if (!text) return;
 
       if (!firstMessageSent) {
         firstMessageSent = true;
-        initialContainer.classList.add("hidden");
-        chatContainer.classList.add("visible");
+        initialContainer.classList.add("hidden"); // 隱藏初始置中輸入框
+        chatContainer.classList.add("visible");   // 顯示聊天區
       }
 
-      appendMessage(text, "user");
+      appendMessage(text, "user"); // 顯示使用者訊息
       inputTop.value = "";
-      sendRequest(text);
+      sendRequest(text);           // 送 API
     }
 
+    // === 底部輸入框送出 ===
     function sendBottom() {
       const text = inputBottom.value.trim();
       if (!text) return;
@@ -238,6 +247,7 @@
       sendRequest(text);
     }
 
+    // === 呼叫後端 API 並處理 GPT 回覆 ===
     async function sendRequest(text) {
       // 顯示 GPT 輸入中動畫
       typingElement = document.createElement("div");
@@ -254,7 +264,7 @@
         });
         const data = await res.json();
 
-        // 移除動畫
+        // 移除輸入中動畫
         if (typingElement) {
           responseDiv.removeChild(typingElement);
           typingElement = null;
@@ -274,6 +284,7 @@
       scrollToBottom();
     }
 
+    // === 逐字打字效果 ===
     async function appendTypingMessage(text) {
       const msg = document.createElement("div");
       msg.className = "message assistant";
@@ -282,10 +293,11 @@
       for (let i = 0; i < text.length; i++) {
         msg.textContent += text[i];
         scrollToBottom();
-        await new Promise(r => setTimeout(r, 20)); // 文字打字速度，越小越快
+        await new Promise(r => setTimeout(r, 50)); // 打字速度
       }
     }
 
+    // === 新增訊息到對話區（使用者或 GPT） ===
     function appendMessage(text, role) {
       const msg = document.createElement("div");
       msg.className = `message ${role}`;
@@ -294,6 +306,7 @@
       scrollToBottom();
     }
 
+    // === 對話區自動捲到底部 ===
     function scrollToBottom() {
       responseDiv.scrollTop = responseDiv.scrollHeight;
     }
