@@ -176,14 +176,43 @@
 
     /* === 固定輸入區在底部 === */
     .input-area {
+      position: sticky;           /* ✅ 固定在視窗底部 */
+      bottom: 0;
+      background-color: #f9fafb;  /* 與背景融為一體 */
       display: flex;
-      flex-direction: column;
-      width: 100%;
-      padding: 8px 0;
-      margin-top: auto; /* 強制靠底部 */
+      align-items: flex-end;      /* 與送出按鈕底對齊 */
+      gap: 8px;
+      padding: 10px 0 14px 0;
       max-width: 720px;
-      margin-left: auto;
-      margin-right: auto;
+      margin: 0 auto;
+    }
+
+    input-area textarea {
+      flex: 1;                    /* ✅ 填滿剩餘空間 */
+      min-height: 44px;           /* 初始高度 */
+      max-height: 200px;          /* 限制最大高度 */
+      overflow-y: auto;           /* 當字太多時可捲動 */
+      resize: none;
+      border-radius: 16px;
+      border: 1px solid #d1d5db;
+      padding: 10px 14px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-area button {
+      flex-shrink: 0;             /* 避免縮小 */
+      padding: 10px 16px;
+      border-radius: 12px;
+      background-color: #2563eb;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .input-area button:hover {
+      background-color: #1e40af;
     }
 
     /* === 響應式設定 === */
@@ -207,7 +236,7 @@
     <div id="response"></div> <!-- 對話訊息區 -->
     <div class="input-area">
       <textarea id="input-bottom" placeholder="輸入練習內容..."></textarea>
-      <button onclick="sendBottom()">送出</button>
+      <button id="send-btn" onclick="sendBottom()">送出</button>
     </div>
   </div>
 
@@ -218,6 +247,7 @@
     const responseDiv = document.getElementById("response");
     const inputTop = document.getElementById("input");
     const inputBottom = document.getElementById("input-bottom");
+    const sendBtn = document.getElementById("send-btn");
 
     let firstMessageSent = false; // 判斷是否第一次送出
     let typingElement = null;     // GPT 輸入中動畫元素
@@ -244,8 +274,23 @@
       if (!text) return;
       appendMessage(text, "user");
       inputBottom.value = "";
+      inputBottom.style.height = "auto"; // ✅ 重置高度
       sendRequest(text);
     }
+
+    // === Enter鍵送出、Shift+Enter換行 ===
+    inputBottom.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendBottom();
+      }
+    });
+
+    // === 自動增高輸入框 ===
+    inputBottom.addEventListener("input", () => {
+      inputBottom.style.height = "auto"; // 重設高度
+      inputBottom.style.height = inputBottom.scrollHeight + "px"; // 根據內容調整高度
+    });
 
     // === 呼叫後端 API 並處理 GPT 回覆 ===
     async function sendRequest(text) {
@@ -293,7 +338,7 @@
       for (let i = 0; i < text.length; i++) {
         msg.textContent += text[i];
         scrollToBottom();
-        await new Promise(r => setTimeout(r, 35)); // 打字速度
+        await new Promise(r => setTimeout(r, 30)); // 打字速度
       }
     }
 
