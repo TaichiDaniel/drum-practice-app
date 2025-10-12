@@ -92,7 +92,7 @@ app.post("/gpt", async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "你是一位在 Musician Institute 教導爵士鼓的老師，精通Technique, Reading以及Performance。請根據教材內容與學生輸入的練習內容，給出建議與鼓勵。"
+          content: "你是一位在 Musician Institute 教導爵士鼓的老師，精通Technique, Reading以及Performance。請根據教材內容與學生輸入的問題給出建議。不需要鼓勵的話。"
         },
         {
           role: "user",
