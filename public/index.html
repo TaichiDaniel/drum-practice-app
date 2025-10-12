@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>練鼓小幫手</title>
   <style>
-    /* === 共用樣式 === */
     * {
       box-sizing: border-box;
     }
@@ -15,33 +14,78 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
       background-color: #f9fafb;
       color: #111827;
-      padding: 16px;
     }
 
     h1 {
+      text-align: center;
       font-size: 1.6rem;
-      margin-bottom: 24px;
+      padding: 16px;
       color: #111827;
       letter-spacing: 0.5px;
     }
 
-    .container {
-      width: 100%;
-      max-width: 640px;
+    /* 聊天主容器 */
+    .chat-container {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    /* 訊息區域可滾動 */
+    #response {
+      flex: 1;
+      width: 100%;
+      overflow-y: auto;
+      padding: 12px;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    /* 個別訊息樣式 */
+    .message {
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-width: 90%;
+    }
+
+    .user {
+      background-color: #2563eb;
+      color: white;
+      align-self: flex-end;
+    }
+
+    .assistant {
+      background-color: #e5e7eb;
+      color: #111827;
+      align-self: flex-start;
+    }
+
+    /* 輸入區固定在底部 */
+    .input-area {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 16px;
     }
 
     textarea {
       width: 100%;
-      height: 100px;
+      height: 80px;
       padding: 12px 16px;
       border: 1px solid #d1d5db;
       border-radius: 12px;
@@ -62,132 +106,95 @@
       background-color: #2563eb;
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 10px 20px;
       border-radius: 10px;
       font-size: 1rem;
       cursor: pointer;
       transition: background-color 0.2s;
-      width: 100%;
-      max-width: 200px;
+      margin-top: 10px;
+      align-self: flex-end;
     }
 
     button:hover {
       background-color: #1e40af;
     }
-    #app {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
 
-    #chat-container {
-      display: flex;
-      flex-direction: column;
-      flex: 1; /* 讓這區域撐滿剩下空間 */
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    #response {
-      margin-top: 16px;
-      font-size: 1rem;
-      color: #1e3a8a;
-      text-align: left;
-      white-space: pre-wrap;
-      line-height: 1.6;       /* 讓文字更易讀 */
-      flex: 1;
-      overflow-y: auto;     /* ✅ 讓回覆內容能捲動 */
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 10px;
-      background: #f9f9f9;
-    }
-
-    /* 固定輸入區在底部 */
-    #user-input {
-      width: 100%;
-      min-height: 60px;
-      resize: none;
-      margin-top: auto;
-      padding: 10px;
-      box-sizing: border-box;
-      font-size: 1em;
-      border-radius: 8px;
-      border: 1px solid #aaa;
-    }
-
-    #send-btn {
-      margin-top: 10px;
-      align-self: flex-end;
-      padding: 8px 15px;
-      font-size: 1em;
-      border-radius: 8px;
-      border: none;
-      background-color: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-
-    /* === 響應式設定 === */
     @media (max-width: 768px) {
       h1 {
         font-size: 1.4rem;
       }
       textarea {
-        height: 120px;
-        font-size: 1rem;
-      }
-      button {
-        width: 100%;
-        font-size: 1rem;
-      }
-      .container {
-        max-width: 90%;
+        height: 100px;
       }
     }
   </style>
 </head>
 <body>
-  <h1>練鼓小幫手</h1>
-  <div class="container">
-    <textarea id="input" placeholder="有什麼需要幫忙的嗎？"></textarea>
-    <button onclick="send()">送出</button>
+  <h1>🥁 練鼓小幫手</h1>
+  <div class="chat-container">
     <div id="response"></div>
+
+    <div class="input-area">
+      <textarea id="input" placeholder="輸入練習內容，例如：單擊 120 bpm RLRL"></textarea>
+      <button onclick="send()">送出</button>
+    </div>
   </div>
 
   <script>
+    const responseDiv = document.getElementById("response");
+
     async function send() {
-      const input = document.getElementById("input").value.trim();
-      const resDiv = document.getElementById("response");
+      const inputBox = document.getElementById("input");
+      const text = inputBox.value.trim();
+      if (!text) return;
 
-      if (!input) {
-        resDiv.innerText = "請先輸入練習內容";
-        return;
-      }
+      // 顯示使用者訊息
+      appendMessage(text, "user");
+      inputBox.value = "";
 
-      resDiv.innerText = "⏳ 等待伺服器回覆...";
-      console.log("送出內容：", input);
+      // 顯示等待訊息
+      appendMessage("⏳ 等待伺服器回覆...", "assistant", true);
 
       try {
         const res = await fetch("/gpt", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: input })
+          body: JSON.stringify({ text })
         });
 
         const data = await res.json();
-        resDiv.innerText = data.reply || "⚠️ 沒有收到伺服器回覆";
 
-        document.getElementById("response").innerText = data.reply;
+        // 刪除「等待」訊息並顯示回覆
+        removeLastAssistantMessage();
+        appendMessage(data.reply || "⚠️ 沒有收到伺服器回覆", "assistant");
 
-        // ✅ 自動滾到底部
-        const responseDiv = document.getElementById("response");
-        responseDiv.scrollTop = responseDiv.scrollHeight;
-        
       } catch (err) {
         console.error(err);
-        resDiv.innerText = "❌ 發生錯誤，請稍後再試";
+        removeLastAssistantMessage();
+        appendMessage("❌ 發生錯誤，請稍後再試", "assistant");
       }
+
+      scrollToBottom();
+    }
+
+    function appendMessage(text, role, isTemporary = false) {
+      const msg = document.createElement("div");
+      msg.className = `message ${role}`;
+      msg.textContent = text;
+      if (isTemporary) msg.dataset.temp = "true";
+      responseDiv.appendChild(msg);
+      scrollToBottom();
+    }
+
+    function removeLastAssistantMessage() {
+      const tempMsg = [...responseDiv.children].reverse().find(
+        el => el.dataset.temp === "true"
+      );
+      if (tempMsg) responseDiv.removeChild(tempMsg);
+    }
+
+    function scrollToBottom() {
+      responseDiv.scrollTop = responseDiv.scrollHeight;
     }
   </script>
 </body>
