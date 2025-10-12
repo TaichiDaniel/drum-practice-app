@@ -227,7 +227,7 @@
 
   <!-- === 初始輸入框置中，第一次使用者輸入 === -->
   <div id="initial-container">
-    <textarea id="input" placeholder="有什麼可以幫你的嗎？"></textarea>
+    <textarea class="enter-send" id="input" placeholder="有什麼可以幫你的嗎？"></textarea>
     <button onclick="send()">送出</button>
   </div>
 
@@ -235,7 +235,7 @@
   <div class="chat-container" id="chat-container">
     <div id="response"></div> <!-- 對話訊息區 -->
     <div class="input-area">
-      <textarea id="input-bottom" placeholder="輸入練習內容..."></textarea>
+      <textarea class="enter-send" id="input-bottom" placeholder="有什麼可以幫你的嗎？"></textarea>
       <button id="send-btn" onclick="sendBottom()">送出</button>
     </div>
   </div>
@@ -357,14 +357,13 @@
     }
 
     document.addEventListener("keydown", function (e) {
-      const textarea = document.getElementById("user-input");
-      if (!textarea) return; // 還沒出現輸入框就跳過
-
-      // 只針對目前 focus 在輸入框的情況觸發
-      if (document.activeElement === textarea) {
-        if (e.key === "Enter" && !e.shiftKey) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        const active = document.activeElement;
+        if (active.classList.contains("enter-send")) {
           e.preventDefault();
-          document.getElementById("send-btn").click();
+          // 根據不同輸入框觸發對應送出函式
+          if (active.id === "input") send();
+          else if (active.id === "input-bottom") sendBottom();
         }
       }
     });
