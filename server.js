@@ -73,10 +73,17 @@ app.post("/gpt", async (req, res) => {
   let prompt = "";
   if (matchedTexts.length > 0) {
     prompt =
+    /*
       `以下是教材內容的部分摘錄：\n\n` +
       matchedTexts.join("\n\n---\n\n") +
       `\n\n請只根據上面的教材回答問題。` +
       `如果教材中沒有答案，請回答「教材中沒有相關資訊」。\n\n` +
+      `問題：${userText}\n回答：`;
+    */
+      prompt =
+      `以下是教材內容的部分摘錄：\n\n` +
+      matchedTexts.join("\n\n---\n\n") +
+      `\n\n請以90%上面的教材+10%外部資料回答問題。` +
       `問題：${userText}\n回答：`;
   } else {
     prompt =
