@@ -83,7 +83,7 @@ app.post("/gpt", async (req, res) => {
       prompt =
       `以下是教材內容的部分摘錄：\n\n` +
       matchedTexts.join("\n\n---\n\n") +
-      `\n\n請以90%上面的教材+10%外部資料回答問題。` +
+      `\n\n請以60%上面的教材+40%外部資料回答問題。` +
       `問題：${userText}\n回答：`;
   } else {
     prompt =
