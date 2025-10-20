@@ -10,11 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pinecone-database/pinecone": "^6.1.2",
     "body-parser": "^2.2.0",
-    "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "node-fetch": "^3.3.2"
+    "dotenv": "^17.2.3",
+    "node-fetch": "^3.3.2",
+    "openai": "^x.x.x",
+    "@pinecone-database/pinecone": "^x.x.x"
   },
   "description": ""
 }
