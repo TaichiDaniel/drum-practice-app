@@ -58,7 +58,7 @@ app.post("/gpt", async (req, res) => {
   // -----------------------------
   const queryResponse = await pineconeIndex.query({
     vector: userVector,
-    topK: 3, // 取最相似的前三個段落
+    topK: 10, // 取最相似的前三個段落
     includeMetadata: true
   });
 
