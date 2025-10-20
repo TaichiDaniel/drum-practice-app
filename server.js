@@ -41,13 +41,40 @@ app.post("/gpt", async (req, res) => {
   const userText = req.body.text;
   console.log("收到練習內容：", userText);
 
+  // -----------------------------
+// 🈶 自動偵測中文 → 翻譯成英文
+// -----------------------------
+let processedText = userText;
+
+if (/[\u4e00-\u9fa5]/.test(userText)) {  // 偵測是否含中文
+  console.log("🔁 偵測到中文，正在翻譯成英文以利向量比對...");
+
+  try {
+    const translation = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a translator that accurately translates Chinese text to English for semantic search on drum education materials."
+        },
+        { role: "user", content: userText }
+      ]
+    });
+
+    processedText = translation.choices[0].message.content.trim();
+    console.log("✅ 翻譯完成：", processedText);
+  } catch (e) {
+    console.error("⚠️ 翻譯失敗，改用原始輸入：", e.message);
+  }
+}
+
   try {
   // -----------------------------
   // 1️⃣ 先呼叫 OpenAI Embeddings 生成向量
   // -----------------------------
   const embeddingResponse = await openai.embeddings.create({
     model: "text-embedding-3-small",
-    input: userText
+    input: processedText
   });
 
   // ✅ 直接取回 JS object，不要再 .json()
