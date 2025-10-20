@@ -122,7 +122,7 @@ if (/[\u4e00-\u9fa5]/.test(userText)) {  // 偵測是否含中文
     // 4️⃣ 呼叫 GPT 產生回覆
     // -----------------------------
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
