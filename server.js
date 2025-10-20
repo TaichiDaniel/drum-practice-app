@@ -69,28 +69,28 @@ app.post("/gpt", async (req, res) => {
   // -----------------------------
   const matchedTexts = queryResponse.matches.map(m => m.metadata.text);
   const contextText = matchedTexts.join("\n---\n");
-
+/*
   let prompt = "";
   if (matchedTexts.length > 0) {
     prompt =
-    /*
+    
       `以下是教材內容的部分摘錄：\n\n` +
       matchedTexts.join("\n\n---\n\n") +
       `\n\n請只根據上面的教材回答問題。` +
       `如果教材中沒有答案，請回答「教材中沒有相關資訊」。\n\n` +
       `問題：${userText}\n回答：`;
-    */
+    
       prompt =
       `以下是教材內容的部分摘錄：\n\n` +
       matchedTexts.join("\n\n---\n\n") +
-      `\n\n請以60%上面的教材+40%外部資料回答問題。` +
+      `\n\n請以100%教材查到的內容回答問題。` +
       `問題：${userText}\n回答：`;
   } else {
     prompt =
       `教材中沒有相關資訊。\n\n` +
       `問題：${userText}\n回答：`;
   }
-
+*/
     // -----------------------------
     // 4️⃣ 呼叫 GPT 產生回覆
     // -----------------------------
@@ -103,7 +103,10 @@ app.post("/gpt", async (req, res) => {
         },
         {
           role: "user",
-          content: `教材內容：\n${contextText}\n\n學生輸入的練習內容：\n${userText}`
+          content: 
+            `以下是教材內容的部分摘錄：\n\n${contextText}\n\n` +
+            `請只根據教材回答問題。若教材中沒有提到，請回答「教材中沒有相關資訊」。\n\n` +
+            `學生的問題：${userText}`
         }
       ]
     });
