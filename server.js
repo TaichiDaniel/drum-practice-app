@@ -85,7 +85,7 @@ if (/[\u4e00-\u9fa5]/.test(userText)) {  // 偵測是否含中文
   // -----------------------------
   const queryResponse = await pineconeIndex.query({
     vector: userVector,
-    topK: 10, // 取最相似的前三個段落
+    topK: 5, // 取最相似的前三個段落
     includeMetadata: true
   });
 
@@ -126,18 +126,15 @@ if (/[\u4e00-\u9fa5]/.test(userText)) {  // 偵測是否含中文
       messages: [
         {
           role: "system",
-          content: "你是一位在 Musician Institute 教導爵士鼓的老師，精通Technique, Reading以及Performance。請根據教材內容與學生輸入的問題給出建議。不需要鼓勵的話。"
+          content: "你是一位在 Musician Institute 教導爵士鼓的老師，熟悉Technique、Reading和Performance教材內容。請根據教材內容回答使用者的問題。不需要鼓勵的話。"
         },
         {
           role: "user",
-          /*
           content: 
             `以下是教材內容的部分摘錄：\n\n${contextText}\n\n` +
-            `請先將摘錄內容全部顯示出來，再根據教材回答問題。若教材中沒有提到，請回答「教材中沒有相關資訊」。\n\n` +
+            `請根據教材回答問題。若教材中沒有提到，請回答「教材中沒有相關資訊」。\n\n` +
             `學生的問題：${userText}`
-          */
-          content: 
-            `請告訴使用者查到的教材內容摘錄：\n\n${contextText}\n\n`
+          
         }
       ]
     });
