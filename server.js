@@ -51,7 +51,7 @@ if (/[\u4e00-\u9fa5]/.test(userText)) {  // 偵測是否含中文
 
   try {
     const translation = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
