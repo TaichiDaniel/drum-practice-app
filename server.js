@@ -270,7 +270,7 @@ async function generateAnswer(userQuery, retrievedData) {
   const formattedData = formatRetrievedData(retrievedData);
   
   const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: ANSWER_GENERATOR_PROMPT },
       { 
@@ -278,7 +278,7 @@ async function generateAnswer(userQuery, retrievedData) {
         content: `檢索資料：\n${formattedData}\n\n使用者問題：${userQuery}\n\n請回答：`
       }
     ],
-    temperature: 0.7
+    // temperature: 0.7
   });
   
   return response.choices[0].message.content;
