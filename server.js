@@ -270,7 +270,7 @@ async function generateAnswer(userQuery, retrievedData) {
   const formattedData = formatRetrievedData(retrievedData);
   
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5-mini",
     messages: [
       { role: "system", content: ANSWER_GENERATOR_PROMPT },
       { 
