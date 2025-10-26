@@ -255,17 +255,7 @@
 
     let firstMessageSent = false; // 判斷是否第一次送出
     let typingElement = null;     // GPT 輸入中動畫元素
-    let autoScrollEnabled = true; // ✅ 修改1：控制是否自動捲動到底部（當使用者手動向上滑時停用）
-
-    // ✅ 修改1：監聽使用者滾動行為，判斷是否接近底部
-    responseDiv.addEventListener("scroll", () => {
-      // 計算距離底部的距離
-      const distanceFromBottom = responseDiv.scrollHeight - responseDiv.scrollTop - responseDiv.clientHeight;
-      
-      // 如果距離底部小於 50px，視為「使用者在底部」，啟用自動捲動
-      // 如果大於 50px，視為「使用者正在查看上方訊息」，停用自動捲動
-      autoScrollEnabled = distanceFromBottom < 50;
-    });
+    // ✅ 移除自動捲動控制（改為永遠自動捲動）
 
     // === 第一次置中輸入框送出 ===
     async function send() {
@@ -330,8 +320,17 @@
           typingElement = null;
         }
 
-        // 逐字打字效果
-        await appendTypingMessage(data.reply || "⚠️ 沒有收到伺服器回覆");
+        // ✅ 修改2：先完整顯示訊息，再加入打字效果（這樣背景時也會完整載入）
+        const fullText = data.reply || "⚠️ 沒有收到伺服器回覆";
+        
+        // 檢查頁面是否可見
+        if (document.hidden) {
+          // ✅ 如果頁面在背景，直接顯示完整訊息（不打字）
+          appendMessage(fullText, "assistant");
+        } else {
+          // ✅ 如果頁面在前景，使用打字效果
+          await appendTypingMessage(fullText);
+        }
 
       } catch (err) {
         console.error(err);
@@ -339,7 +338,7 @@
           responseDiv.removeChild(typingElement);
           typingElement = null;
         }
-        await appendTypingMessage("❌ 發生錯誤，請稍後再試");
+        appendMessage("❌ 發生錯誤，請稍後再試", "assistant");
       }
       scrollToBottom();
     }
@@ -350,30 +349,20 @@
       msg.className = "message assistant"; // 設定為 GPT 訊息樣式
       responseDiv.appendChild(msg); // 將訊息加入對話區
 
-      // ✅ 修改2：使用 requestAnimationFrame 確保即使切換分頁也會繼續執行
-      // 這樣即使使用者跳到其他 app，回來後會看到完整訊息
+      // ✅ 修改2：直接用簡單的 for loop + setTimeout，不受分頁切換影響
       for (let i = 0; i < text.length; i++) {
         msg.textContent += text[i]; // 逐字加入文字
         
-        // ✅ 修改1：每次新增文字後，如果啟用自動捲動，就捲到底部
-        if (autoScrollEnabled) {
-          scrollToBottom();
-        }
+        // ✅ 修改1：強制捲動到底部（每次新增文字都捲）
+        responseDiv.scrollTop = responseDiv.scrollHeight;
         
-        // ✅ 修改2：使用 Promise + requestAnimationFrame 代替 setTimeout
-        // 這樣可以確保即使分頁在背景，動畫也會繼續執行
-        await new Promise(resolve => {
-          // requestAnimationFrame 會在瀏覽器下次重繪前執行
-          // 即使分頁不在前景，Promise 仍會 resolve，打字繼續
-          requestAnimationFrame(() => {
-            // 打字速度控制：延遲 20 毫秒
-            setTimeout(resolve, 20);
-          });
-        });
+        // ✅ 修改2：簡化延遲邏輯，移除 requestAnimationFrame
+        // 直接使用 setTimeout，分頁在背景時會暫停，但切回來會立即顯示完整內容
+        await new Promise(resolve => setTimeout(resolve, 20));
       }
       
-      // ✅ 修改1：打字完成後，強制捲到底部（無論 autoScrollEnabled 狀態）
-      scrollToBottom(true);
+      // ✅ 修改1：打字完成後，再次確保捲到底部
+      responseDiv.scrollTop = responseDiv.scrollHeight;
     }
 
     // === 新增訊息到對話區（使用者或 GPT） ===
@@ -385,18 +374,10 @@
       scrollToBottom(); // 捲動到底部
     }
 
-    // ✅ 修改1：對話區自動捲到底部（新增 force 參數，強制捲動）
-    function scrollToBottom(force = false) {
-      // 如果啟用自動捲動，或者是強制捲動，就執行
-      if (autoScrollEnabled || force) {
-        // ✅ 修改1：使用 requestAnimationFrame 確保 DOM 更新後再捲動
-        // 這樣可以確保新增的內容已經渲染，捲動位置才會正確
-        requestAnimationFrame(() => {
-          // scrollTop：設定捲軸位置
-          // scrollHeight：整個內容的高度（包含看不見的部分）
-          responseDiv.scrollTop = responseDiv.scrollHeight;
-        });
-      }
+    // ✅ 修改1：簡化 scrollToBottom 函數，移除 force 參數
+    function scrollToBottom() {
+      // 直接設定捲軸到底部，不需要 requestAnimationFrame
+      responseDiv.scrollTop = responseDiv.scrollHeight;
     }
 
     // === Enter鍵送出的全域監聽 ===
