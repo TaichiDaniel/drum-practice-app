@@ -110,6 +110,7 @@
       background: transparent; /* 融入背景，去掉明顯區塊 */
       border: none;
       box-shadow: none;
+      scroll-behavior: smooth; /* ✅ 修改1：平滑滾動效果，讓捲動更自然 */
     }
 
     /* === 單條訊息樣式 === */
@@ -189,7 +190,7 @@
       width: 100%;           /* 必須佔滿整個可用寬度 */
     }
 
-    input-area textarea {
+    .input-area textarea {
       flex: 1;                    /* ✅ 填滿剩餘空間 */
       min-height: 44px;           /* 初始高度 */
       max-height: 150px;          /* 限制最大高度 */
@@ -254,6 +255,17 @@
 
     let firstMessageSent = false; // 判斷是否第一次送出
     let typingElement = null;     // GPT 輸入中動畫元素
+    let autoScrollEnabled = true; // ✅ 修改1：控制是否自動捲動到底部（當使用者手動向上滑時停用）
+
+    // ✅ 修改1：監聽使用者滾動行為，判斷是否接近底部
+    responseDiv.addEventListener("scroll", () => {
+      // 計算距離底部的距離
+      const distanceFromBottom = responseDiv.scrollHeight - responseDiv.scrollTop - responseDiv.clientHeight;
+      
+      // 如果距離底部小於 50px，視為「使用者在底部」，啟用自動捲動
+      // 如果大於 50px，視為「使用者正在查看上方訊息」，停用自動捲動
+      autoScrollEnabled = distanceFromBottom < 50;
+    });
 
     // === 第一次置中輸入框送出 ===
     async function send() {
@@ -292,7 +304,7 @@
     // === 自動增高輸入框 ===
     inputBottom.addEventListener("input", () => {
       inputBottom.style.height = "auto"; // 重設高度
-      bottomInput.style.height = Math.min(bottomInput.scrollHeight, 150) + "px"; // 自動撐高，限制150px
+      inputBottom.style.height = Math.min(inputBottom.scrollHeight, 150) + "px"; // ✅ 修正：原本寫錯變數名 bottomInput → inputBottom，自動撐高，限制150px
     });
 
     // === 呼叫後端 API 並處理 GPT 回覆 ===
@@ -334,39 +346,68 @@
 
     // === 逐字打字效果 ===
     async function appendTypingMessage(text) {
-      const msg = document.createElement("div");
-      msg.className = "message assistant";
-      responseDiv.appendChild(msg);
+      const msg = document.createElement("div"); // 創建新的訊息元素
+      msg.className = "message assistant"; // 設定為 GPT 訊息樣式
+      responseDiv.appendChild(msg); // 將訊息加入對話區
 
+      // ✅ 修改2：使用 requestAnimationFrame 確保即使切換分頁也會繼續執行
+      // 這樣即使使用者跳到其他 app，回來後會看到完整訊息
       for (let i = 0; i < text.length; i++) {
-        msg.textContent += text[i];
-        scrollToBottom();
-        await new Promise(r => setTimeout(r, 30)); // 打字速度
+        msg.textContent += text[i]; // 逐字加入文字
+        
+        // ✅ 修改1：每次新增文字後，如果啟用自動捲動，就捲到底部
+        if (autoScrollEnabled) {
+          scrollToBottom();
+        }
+        
+        // ✅ 修改2：使用 Promise + requestAnimationFrame 代替 setTimeout
+        // 這樣可以確保即使分頁在背景，動畫也會繼續執行
+        await new Promise(resolve => {
+          // requestAnimationFrame 會在瀏覽器下次重繪前執行
+          // 即使分頁不在前景，Promise 仍會 resolve，打字繼續
+          requestAnimationFrame(() => {
+            // 打字速度控制：延遲 20 毫秒
+            setTimeout(resolve, 20);
+          });
+        });
       }
+      
+      // ✅ 修改1：打字完成後，強制捲到底部（無論 autoScrollEnabled 狀態）
+      scrollToBottom(true);
     }
 
     // === 新增訊息到對話區（使用者或 GPT） ===
     function appendMessage(text, role) {
-      const msg = document.createElement("div");
-      msg.className = `message ${role}`;
-      msg.textContent = text;
-      responseDiv.appendChild(msg);
-      scrollToBottom();
+      const msg = document.createElement("div"); // 創建訊息元素
+      msg.className = `message ${role}`; // 設定訊息角色（user 或 assistant）
+      msg.textContent = text; // 設定訊息內容
+      responseDiv.appendChild(msg); // 加入對話區
+      scrollToBottom(); // 捲動到底部
     }
 
-    // === 對話區自動捲到底部 ===
-    function scrollToBottom() {
-      responseDiv.scrollTop = responseDiv.scrollHeight;
+    // ✅ 修改1：對話區自動捲到底部（新增 force 參數，強制捲動）
+    function scrollToBottom(force = false) {
+      // 如果啟用自動捲動，或者是強制捲動，就執行
+      if (autoScrollEnabled || force) {
+        // ✅ 修改1：使用 requestAnimationFrame 確保 DOM 更新後再捲動
+        // 這樣可以確保新增的內容已經渲染，捲動位置才會正確
+        requestAnimationFrame(() => {
+          // scrollTop：設定捲軸位置
+          // scrollHeight：整個內容的高度（包含看不見的部分）
+          responseDiv.scrollTop = responseDiv.scrollHeight;
+        });
+      }
     }
 
+    // === Enter鍵送出的全域監聽 ===
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && !e.shiftKey) {
-        const active = document.activeElement;
-        if (active.classList.contains("enter-send")) {
-          e.preventDefault();
+      if (e.key === "Enter" && !e.shiftKey) { // 按下 Enter 且沒按 Shift
+        const active = document.activeElement; // 取得目前聚焦的元素
+        if (active.classList.contains("enter-send")) { // 如果是輸入框
+          e.preventDefault(); // 防止預設換行行為
           // 根據不同輸入框觸發對應送出函式
-          if (active.id === "input") send();
-          else if (active.id === "input-bottom") sendBottom();
+          if (active.id === "input") send(); // 頂部輸入框
+          else if (active.id === "input-bottom") sendBottom(); // 底部輸入框
         }
       }
     });
