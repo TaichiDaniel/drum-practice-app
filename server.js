@@ -114,10 +114,10 @@ async function analyzeQuery(userQuery, conversationHistory = []) {
   messages.push({ role: "user", content: userQuery });
   
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5-mini",
     messages: messages,
     response_format: { type: "json_object" },
-    temperature: 0
+    // temperature: 0
   });
   
   const analysis = JSON.parse(response.choices[0].message.content);
@@ -148,11 +148,11 @@ async function analyzeUserContext(userQuery, conversationHistory = []) {
   messages.push({ role: "user", content: userQuery });
   
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5-mini",
     messages: messages,
     response_format: { type: "json_object" },
-    temperature: 0,
-    max_tokens: 200
+    // temperature: 0,
+    // max_tokens: 200
   });
   
   const context = JSON.parse(response.choices[0].message.content);
@@ -480,10 +480,10 @@ ${retrievedData.type === 'multi_category' ? '⚠️ 這是程度建議問題，�
   ];
   
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5-mini",
     messages: messages,
-    temperature: 0.8,
-    max_tokens: 2000  // 增加以容納多類別建議
+    // temperature: 0.8,
+    // max_tokens: 2000  // 增加以容納多類別建議
   });
   
   return response.choices[0].message.content;
