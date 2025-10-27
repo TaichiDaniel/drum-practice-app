@@ -110,7 +110,8 @@
       background: transparent; /* 融入背景，去掉明顯區塊 */
       border: none;
       box-shadow: none;
-      scroll-behavior: smooth; /* ✅ 修改1：平滑滾動效果，讓捲動更自然 */
+      /* ✅ 移除 smooth，改用 auto 讓捲動立即生效 */
+      scroll-behavior: auto;
     }
 
     /* === 單條訊息樣式 === */
@@ -320,17 +321,8 @@
           typingElement = null;
         }
 
-        // ✅ 修改2：先完整顯示訊息，再加入打字效果（這樣背景時也會完整載入）
-        const fullText = data.reply || "⚠️ 沒有收到伺服器回覆";
-        
-        // 檢查頁面是否可見
-        if (document.hidden) {
-          // ✅ 如果頁面在背景，直接顯示完整訊息（不打字）
-          appendMessage(fullText, "assistant");
-        } else {
-          // ✅ 如果頁面在前景，使用打字效果
-          await appendTypingMessage(fullText);
-        }
+        // ✅ 修改2：直接使用打字效果，setInterval 會在背景繼續執行
+        await appendTypingMessage(data.reply || "⚠️ 沒有收到伺服器回覆");
 
       } catch (err) {
         console.error(err);
@@ -349,20 +341,25 @@
       msg.className = "message assistant"; // 設定為 GPT 訊息樣式
       responseDiv.appendChild(msg); // 將訊息加入對話區
 
-      // ✅ 修改2：直接用簡單的 for loop + setTimeout，不受分頁切換影響
+      // ✅ 修改：每 10 個字元強制捲動一次，確保看得到
       for (let i = 0; i < text.length; i++) {
         msg.textContent += text[i]; // 逐字加入文字
         
-        // ✅ 修改1：強制捲動到底部（每次新增文字都捲）
-        responseDiv.scrollTop = responseDiv.scrollHeight;
+        // ✅ 每 10 個字或換行符號就捲動一次
+        if (i % 10 === 0 || text[i] === '\n') {
+          // 使用多種方法確保捲動成功
+          responseDiv.scrollTop = responseDiv.scrollHeight; // 方法1
+          responseDiv.scroll(0, responseDiv.scrollHeight); // 方法2
+          msg.scrollIntoView(false); // 方法3：捲到元素底部
+        }
         
-        // ✅ 修改2：簡化延遲邏輯，移除 requestAnimationFrame
-        // 直接使用 setTimeout，分頁在背景時會暫停，但切回來會立即顯示完整內容
-        await new Promise(resolve => setTimeout(resolve, 20));
+        // 等待一小段時間再顯示下一個字
+        await new Promise(resolve => setTimeout(resolve, 15));
       }
       
-      // ✅ 修改1：打字完成後，再次確保捲到底部
+      // 最後強制捲到最底部
       responseDiv.scrollTop = responseDiv.scrollHeight;
+      responseDiv.scroll(0, responseDiv.scrollHeight);
     }
 
     // === 新增訊息到對話區（使用者或 GPT） ===
