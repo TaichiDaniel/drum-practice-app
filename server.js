@@ -25,7 +25,7 @@ app.post("/gpt", async (req, res) => {
         { role: "user", content: userText },
       ],
       // ⚠️ 不加 temperature，因為 gpt-5-mini 只支援預設值 1
-      max_tokens: 500,
+      max_completion_tokens: 500,
     });
 
     const reply = completion.choices[0].message.content;
