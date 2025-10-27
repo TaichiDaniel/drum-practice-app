@@ -140,6 +140,26 @@
       align-self: flex-start; /* 左側顯示 */
     }
 
+    /* ✅ Markdown支援修改：讓 Markdown 內容有格式（例如 code block、list） */
+    .assistant code {
+      background: #f3f4f6;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .assistant pre {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.9rem;
+    }
+    .assistant ul, .assistant ol {
+      margin: 8px 0 8px 20px;
+    }
+    .assistant strong { font-weight: 600; }
+
     @keyframes fadeIn {
       to { opacity: 1; transform: translateY(0); }
     }
@@ -225,6 +245,10 @@
       textarea { height: 100px; }
     }
   </style>
+
+  <!-- ✅ Markdown支援修改：加入 marked.js -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 </head>
 <body>
   <h1>🥁練鼓小幫手</h1>
@@ -255,7 +279,6 @@
 
     let firstMessageSent = false; // 判斷是否第一次送出
     let typingElement = null;     // GPT 輸入中動畫元素
-    // ✅ 移除自動捲動控制（改為永遠自動捲動）
 
     // === 第一次置中輸入框送出 ===
     async function send() {
@@ -294,12 +317,11 @@
     // === 自動增高輸入框 ===
     inputBottom.addEventListener("input", () => {
       inputBottom.style.height = "auto"; // 重設高度
-      inputBottom.style.height = Math.min(inputBottom.scrollHeight, 150) + "px"; // ✅ 修正：原本寫錯變數名 bottomInput → inputBottom，自動撐高，限制150px
+      inputBottom.style.height = Math.min(inputBottom.scrollHeight, 150) + "px";
     });
 
     // === 呼叫後端 API 並處理 GPT 回覆 ===
     async function sendRequest(text) {
-      // 顯示 GPT 輸入中動畫
       typingElement = document.createElement("div");
       typingElement.className = "typing";
       typingElement.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
@@ -314,13 +336,11 @@
         });
         const data = await res.json();
 
-        // 移除輸入中動畫
         if (typingElement) {
           responseDiv.removeChild(typingElement);
           typingElement = null;
         }
 
-        // ✅ 修改2：直接使用打字效果，setInterval 會在背景繼續執行
         await appendTypingMessage(data.reply || "⚠️ 沒有收到伺服器回覆");
 
       } catch (err) {
@@ -336,68 +356,58 @@
 
     // === 逐字打字效果 ===
     async function appendTypingMessage(text) {
-      const msg = document.createElement("div"); // 創建新的訊息元素
-      msg.className = "message assistant"; // 設定為 GPT 訊息樣式
-      responseDiv.appendChild(msg); // 將訊息加入對話區
+      const msg = document.createElement("div");
+      msg.className = "message assistant";
+      responseDiv.appendChild(msg);
 
-      // ✅ 修改2：使用 Web Worker 或直接一次性顯示來避免背景節流問題
-      // 先檢查瀏覽器是否支援 Page Visibility API
       let isPageVisible = !document.hidden;
-      
-      // ✅ 修改2：監聽頁面可見性變化
-      const visibilityHandler = () => {
-        isPageVisible = !document.hidden;
-      };
+      const visibilityHandler = () => { isPageVisible = !document.hidden; };
       document.addEventListener('visibilitychange', visibilityHandler);
 
-      // ✅ 修改：逐字顯示，但加入更積極的捲動策略
-      for (let i = 0; i < text.length; i++) {
-        msg.textContent += text[i]; // 逐字加入文字
-        
-        // ✅ 修改1：每個字都捲動（確保完全可見）+ 多加 50px 偏移
+      // ✅ Markdown支援修改：預先轉換為HTML
+      const markdownHTML = marked.parse(text);
+
+      // ✅ 使用 innerHTML 讓 Markdown 格式生效
+      for (let i = 0; i < markdownHTML.length; i++) {
+        msg.innerHTML = markdownHTML.slice(0, i + 1);
         responseDiv.scrollTop = responseDiv.scrollHeight + 50;
-        
-        // ✅ 修改2：如果頁面不可見，加速打字（1ms 間隔）
-        const delay = isPageVisible ? 15 : 1;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delay = isPageVisible ? 5 : 1;
+        await new Promise(r => setTimeout(r, delay));
       }
-      
-      // 移除監聽器
+
       document.removeEventListener('visibilitychange', visibilityHandler);
-      
-      // ✅ 修改1：最後再次強制捲到最底部 + 額外偏移
       responseDiv.scrollTop = responseDiv.scrollHeight + 100;
-      
-      // ✅ 修改1：延遲一點再捲一次，確保 DOM 完全渲染
-      setTimeout(() => {
-        responseDiv.scrollTop = responseDiv.scrollHeight + 100;
-      }, 100);
+      setTimeout(() => responseDiv.scrollTop = responseDiv.scrollHeight + 100, 100);
     }
 
-    // === 新增訊息到對話區（使用者或 GPT） ===
+    // === 新增訊息到對話區 ===
     function appendMessage(text, role) {
-      const msg = document.createElement("div"); // 創建訊息元素
-      msg.className = `message ${role}`; // 設定訊息角色（user 或 assistant）
-      msg.textContent = text; // 設定訊息內容
-      responseDiv.appendChild(msg); // 加入對話區
-      scrollToBottom(); // 捲動到底部
+      const msg = document.createElement("div");
+      msg.className = `message ${role}`;
+
+      // ✅ Markdown支援修改：使用 marked 解析 GPT 訊息
+      if (role === "assistant") {
+        msg.innerHTML = marked.parse(text);
+      } else {
+        msg.textContent = text;
+      }
+
+      responseDiv.appendChild(msg);
+      scrollToBottom();
     }
 
-    // ✅ 修改1：簡化 scrollToBottom 函數，移除 force 參數
     function scrollToBottom() {
-      // 直接設定捲軸到底部，不需要 requestAnimationFrame
       responseDiv.scrollTop = responseDiv.scrollHeight;
     }
 
     // === Enter鍵送出的全域監聽 ===
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && !e.shiftKey) { // 按下 Enter 且沒按 Shift
-        const active = document.activeElement; // 取得目前聚焦的元素
-        if (active.classList.contains("enter-send")) { // 如果是輸入框
-          e.preventDefault(); // 防止預設換行行為
-          // 根據不同輸入框觸發對應送出函式
-          if (active.id === "input") send(); // 頂部輸入框
-          else if (active.id === "input-bottom") sendBottom(); // 底部輸入框
+      if (e.key === "Enter" && !e.shiftKey) {
+        const active = document.activeElement;
+        if (active.classList.contains("enter-send")) {
+          e.preventDefault();
+          if (active.id === "input") send();
+          else if (active.id === "input-bottom") sendBottom();
         }
       }
     });
