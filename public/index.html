@@ -106,12 +106,11 @@
       display: flex;
       flex-direction: column;
       gap: 8px; /* 訊息間距 */
-      padding: 0;
+      padding: 0 0 20px 0; /* ✅ 修改1：底部加 20px padding，確保最後一行可見 */
       background: transparent; /* 融入背景，去掉明顯區塊 */
       border: none;
       box-shadow: none;
-      /* ✅ 移除 smooth，改用 auto 讓捲動立即生效 */
-      scroll-behavior: auto;
+      scroll-behavior: auto; /* 立即捲動，不使用平滑動畫 */
     }
 
     /* === 單條訊息樣式 === */
@@ -341,25 +340,38 @@
       msg.className = "message assistant"; // 設定為 GPT 訊息樣式
       responseDiv.appendChild(msg); // 將訊息加入對話區
 
-      // ✅ 修改：每 10 個字元強制捲動一次，確保看得到
+      // ✅ 修改2：使用 Web Worker 或直接一次性顯示來避免背景節流問題
+      // 先檢查瀏覽器是否支援 Page Visibility API
+      let isPageVisible = !document.hidden;
+      
+      // ✅ 修改2：監聽頁面可見性變化
+      const visibilityHandler = () => {
+        isPageVisible = !document.hidden;
+      };
+      document.addEventListener('visibilitychange', visibilityHandler);
+
+      // ✅ 修改：逐字顯示，但加入更積極的捲動策略
       for (let i = 0; i < text.length; i++) {
         msg.textContent += text[i]; // 逐字加入文字
         
-        // ✅ 每 10 個字或換行符號就捲動一次
-        if (i % 10 === 0 || text[i] === '\n') {
-          // 使用多種方法確保捲動成功
-          responseDiv.scrollTop = responseDiv.scrollHeight; // 方法1
-          responseDiv.scroll(0, responseDiv.scrollHeight); // 方法2
-          msg.scrollIntoView(false); // 方法3：捲到元素底部
-        }
+        // ✅ 修改1：每個字都捲動（確保完全可見）+ 多加 50px 偏移
+        responseDiv.scrollTop = responseDiv.scrollHeight + 50;
         
-        // 等待一小段時間再顯示下一個字
-        await new Promise(resolve => setTimeout(resolve, 15));
+        // ✅ 修改2：如果頁面不可見，加速打字（1ms 間隔）
+        const delay = isPageVisible ? 15 : 1;
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
       
-      // 最後強制捲到最底部
-      responseDiv.scrollTop = responseDiv.scrollHeight;
-      responseDiv.scroll(0, responseDiv.scrollHeight);
+      // 移除監聽器
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      
+      // ✅ 修改1：最後再次強制捲到最底部 + 額外偏移
+      responseDiv.scrollTop = responseDiv.scrollHeight + 100;
+      
+      // ✅ 修改1：延遲一點再捲一次，確保 DOM 完全渲染
+      setTimeout(() => {
+        responseDiv.scrollTop = responseDiv.scrollHeight + 100;
+      }, 100);
     }
 
     // === 新增訊息到對話區（使用者或 GPT） ===
